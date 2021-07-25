@@ -10,6 +10,7 @@ def preprocess(array: np.array):
     array = array.astype("float32")/255.0
     array = np.reshape(array, (len(array), 28, 28, 1))
     print("Final Shape:", array.shape)
+
     return array
 
 
@@ -18,15 +19,18 @@ def noise(array):
     noise_factor = 0.5
     noise_array = array + noise_factor * \
         np.random.normal(loc=0.0, scale=1.0, size=array.shape)
+
     return np.clip(noise_array, 0.0, 1.0)
 
 
 def load_data():
     """ Loading the data and applying the preprocessing steps """
-    (train_data, _), (test_data, _) = keras.datasets.mnist.load_data()
+    with np.load("mnist.npz", allow_pickle=True) as f:
+        train_data, test_data = f['x_train'], f['x_test']
 
     train_data = preprocess(train_data)
     test_data = preprocess(test_data)
+
     return train_data, test_data
 
 
@@ -80,8 +84,7 @@ def train_model():
         save_weights_only=False,
         mode="auto",
         save_freq="epoch",
-        options=None,
-    )
+        options=None)
 
     autoencoder.fit(
         x=noisy_train_data,
@@ -91,7 +94,8 @@ def train_model():
         shuffle=True,
         validation_data=(noisy_test_data, test_data),
         callbacks=[early_stopping, model_checkpoint])
-
+    
+    autoencoder.save('saved_model')
 
 def display(array1, array2):
     """
@@ -125,7 +129,7 @@ def show_output(img_array):
     """ function for showing the output """
     try:
         autoencoder = keras.models.load_model(
-            "tmp")  # loading model from tmp folder
+            "saved_model")  # loading model from tmp folder
     except Exception:
         print("There is no model please train the model first then use the run command")
 

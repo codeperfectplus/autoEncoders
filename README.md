@@ -16,4 +16,5 @@ python mnist_autoencoders.py run
 
 ## Output
 
+![figure_1.png](images/Figure_2.png)
 ![figure_1.png](images/Figure_1.png)
