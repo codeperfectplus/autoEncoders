@@ -23,7 +23,7 @@ def noise(array):
     return np.clip(noise_array, 0.0, 1.0)
 
 
-def load_data():
+def load_data(path="mnist.npz"):
     """ Loading the data and applying the preprocessing steps """
     with np.load("mnist.npz", allow_pickle=True) as f:
         train_data, test_data = f['x_train'], f['x_test']
@@ -67,18 +67,18 @@ def build_model(input_shape=(28, 28, 1)):
     return autoencoder
 
 
-def train_model():
+def train_model(checkpoint_dir="tmp", monitor="val_loss"):
     autoencoder = build_model()
     autoencoder.summary()
 
     early_stopping = keras.callbacks.EarlyStopping(
-        monitor="val_loss",
+        monitor=monitor,
         patience=5,
         restore_best_weights=True)
 
     model_checkpoint = keras.callbacks.ModelCheckpoint(
-        'tmp',
-        monitor="val_loss",
+        checkpoint_dir,
+        monitor=monitor,
         verbose=0,
         save_best_only=True,
         save_weights_only=False,
@@ -97,12 +97,13 @@ def train_model():
     
     autoencoder.save('saved_model')
 
-def display(array1, array2):
+def display(array1, array2, n=10):
     """
     Displays n random images from each one of the supplied arrays.
-    """
 
-    n = 10
+    args:
+        n: Number of output to show
+    """
 
     indices = np.random.randint(len(array1), size=n)
     images1 = array1[indices, :]
@@ -125,7 +126,7 @@ def display(array1, array2):
     plt.show()
 
 
-def show_output(img_array):
+def show_output():
     """ function for showing the output """
     try:
         autoencoder = keras.models.load_model(
@@ -134,7 +135,7 @@ def show_output(img_array):
         print("There is no model please train the model first then use the run command")
 
     predictions = autoencoder.predict(noisy_test_data)
-    display(noisy_test_data, predictions)
+    display(noisy_test_data, predictions, n=10)
 
 
 if __name__ == '__main__':
@@ -142,6 +143,6 @@ if __name__ == '__main__':
         if sys.argv[1] == "train":
             train_model()
         if sys.argv[1] == "run":
-            show_output(noisy_test_data[9])
+            show_output()
     except Exception:
         print("Please Use train and run argument to run the process. check the Readme for more details")
